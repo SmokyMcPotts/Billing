@@ -34,7 +34,7 @@ console.log(`Your current balance is ${userName == 'Bob' ? balBob : balAlice} ${
 const commonInteract = (userName) => ({
     requestDenied: () => {console.log(`${userName == 'Bob' ? 'You have denied the request' : 'Bob said no'}.`)},
     reportMismatch: () => { console.log(`${userName == 'Bob' ? 'This request was intended for someone else' : 'Address does not match input, request aborted'}.`)},
-    reportCompletion: (payment) => { console.log(`${username == 'Bob' ? 'You have ' : 'Bob has '} accepted the request, and a transfer of ${toSU(payment)} has been completed.`)},
+    reportCompletion: (approveRequest) => { console.log(`${username == 'Bob' ? 'You have ' : 'Bob has '} accepted the request, and a transfer of ${toSU(payment)} has been completed.`)},
 //future common interact properties
 });
 
@@ -42,19 +42,15 @@ const commonInteract = (userName) => ({
 if (userName === 'Alice') {
     const aliceInteract = {
         ...commonInteract(userName),
-        requestAddress: await ask.ask("Please enter the sender's address.", (add) => {
-            let reqAdd = !add ? 0 : add;
-            if (add == 0) { console.log('You did not enter a valid address. Please start again.') };
+        requestAddress: await ask.ask("Please enter the address you would like to bill.", (add) => {
+            let reqAdd = add;
             return reqAdd;
         }),
         requestAmount: await ask.ask('How much would you like to request?', (amt) => {
-            let reqAmt = !amt ? 0 : amt;
-            if (amt == 0) { console.log('You did not enter a valid amount. Please start again.') };
+            let reqAmt = amt;
             return reqAmt;
         }),
-        reportReady: async (requestAmount) => {
-            console.log(`Your request for ${toSU(requestAmount)} ${suStr} has been submitted.`);
-        }
+        reportReady: async (requestAmount) => console.log(`Your request for ${toSU(requestAmount)} ${suStr} has been submitted.`),
     };
 
     // alice-specific accounting stuff 
@@ -63,7 +59,8 @@ if (userName === 'Alice') {
 } else {
     const bobInteract = {
         ...commonInteract(userName),
-        approveRequest: await ask.ask(`Your balance is ${balBob} ${suStr}. Would you like to send the requested amount?`, ask.yesno), 
+        bobAddress: accountBob.getAddress(),
+        approveRequest: async (requestAmount) => await ask.ask(`Your balance is ${balBob} ${suStr}. Alice is requesting ${requestAmount} ${suStr}. Approve request?`, ask.yesno), 
         //more Bob interact?
     }
     

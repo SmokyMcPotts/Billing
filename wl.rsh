@@ -2,7 +2,7 @@
 
 const commonInteract = {
   requestDenied: Fun([], Null),
-  reportMismatch: Fun([Bool], Null),
+  reportMismatch: Fun([], Null),
   reportCompletion: Fun([UInt], Null)
   //common interact functions here
 };
@@ -10,7 +10,7 @@ const commonInteract = {
 const aliceInteract = {
   ...commonInteract,
   aliceAddress: Address,
-  requestAddress: Fun([Address], Null),
+  requestAddress: Address,
   requestAmount: UInt,
   reportReady: Fun([UInt], Null),
   //additional initiator interact functions here
@@ -33,20 +33,19 @@ export const main = Reach.App(() => {
       const requestAmount = declassify(interact.requestAmount);
       const requestAddress = declassify(interact.requestAddress);
     });
-    A.publish(requestAmount, requestAddress);
-    const compareMap = new Map(Address, Address);
-    compareMap[0] = requestAddress;
+    A.publish(requestAddress, requestAmount);
+    const compareSet = new Set();
+    compareSet.insert(requestAddress);
     A.interact.reportReady(requestAmount);
     commit();
 
     B.only(() => {
       const bobAddress = declassify(interact.bobAddress);
-      const approvalTrue = declassify(interact.approveRequest);
+      const approvalTrue = declassify(interact.approveRequest(requestAmount));
     });
-    B.publish(bobAddress, approveRequest); 
+    B.publish(bobAddress, approvalTrue); 
     //this happens in consensus step?
-    compareMap[1] = bobAddress;
-    if (compareMap[0] !== compareMap[1]) {
+    if (compareSet.member(bobAddress)) {
       commit();
       each ([A, B], () => interact.reportMismatch());
       exit();
@@ -61,9 +60,7 @@ export const main = Reach.App(() => {
     }
 
     B.pay(requestAmount);
-    each ([A, B], () => interact.reportCompletion());
-    commit();
-
+    each ([A, B], () => interact.reportCompletion(requestAmount));
     transfer(requestAmount).to(A);
     commit();
 
