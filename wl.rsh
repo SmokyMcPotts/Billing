@@ -9,7 +9,6 @@ const commonInteract = {
 
 const aliceInteract = {
   ...commonInteract,
-  aliceAddress: Address,
   requestAddress: Address,
   requestAmount: UInt,
   reportReady: Fun([UInt], Null),
