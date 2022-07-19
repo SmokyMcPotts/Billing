@@ -10,37 +10,31 @@ const startingBalance = stdlib.parseCurrency(100);
 const [ accAlice, accBob ] =
   await stdlib.newTestAccounts(2, startingBalance);
 console.log('Test accounts created...');
+const aliceAddress = accAlice.getAddress();
+console.log(`Your account address is ${aliceAddress}.`);
 
 console.log('Launching...');
 const ctcAlice = accAlice.contract(backend);
 const ctcBob = accBob.contract(backend, ctcAlice.getInfo());
-
 console.log('Starting backends...');
-const sharedFunctions = (Who) => ({
-  reportCompletion: (result) => {
-    const close = result;
-    console.log(`${(close) ? 'Bob has been allowed into the shuffle' : 'Unauthorized entry attempted'}.`);
-    return close;
-  },
-});
-console.log('Shared Functions loaded...')
+
 await Promise.all([
   backend.Alice(ctcAlice, {
-    ...sharedFunctions,
     addressAlice : accAlice.getAddress(),  
-    whitelist : await ask.ask(`Please enter the address you would like to add to the whitelist. \nPress enter to add ${accBob.getAddress()}.`, (addr) => {
+    whitelist : await ask.ask(`Please enter the address you would like to add to the whitelist. \nOr press enter to add ${accBob.getAddress()}.`, (addr) => {
       let ans = !addr ? accBob.getAddress() : addr;
       return ans;
     }),
+    reportCompletion: (result) => {
+      console.log(`${(result) ? 'Bob has been allowed into the shuffle' : 'Unauthorized entry attempted'}.`);
+    },
     // implement Alice's interact object here
   }),
   backend.Bob(ctcBob, {
-    ...sharedFunctions,
     addressBob : accBob.getAddress(),
     // implement Bob's interact object here
   }),
 ]);
 
-console.log('Goodbye, Alice and Bob!');
-
+console.log('Goodbye, Alice');
 

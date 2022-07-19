@@ -1,17 +1,12 @@
 'reach 0.1';
 
-const sharedFunctions = {
+const aliceInteract = {
+  addressAlice : Address,
+  whitelist : Address,
   reportCompletion : Fun([Bool], Null),
 };
 
-const aliceInteract = {
-  ...sharedFunctions,
-  addressAlice : Address,
-  whitelist : Address,
-};
-
 const bobInteract = {
-  ...sharedFunctions,
   addressBob : Address,
 }
 
@@ -38,10 +33,9 @@ export const main = Reach.App(() => {
   A.publish(whitelist);
   const compareSet = new Set();
   compareSet.insert(whitelist);
-  const result = (compareSet.member(addressBob));
-  each ([A, B], () => {
-    interact.reportCompletion(result); 
-  });
+  const result = (compareSet.member(addressBob)) 
+  A.only(() => {
+      interact.reportCompletion(result); });
   commit();
   
   exit();
