@@ -1,6 +1,21 @@
 # Billing
 week3 bear challenge - reach ascent 
 
+--------------------error on index----------------------------
+
+file:///app/build/index.main.mjs:190
+  stdlib.protect(ctc0, await interact.reportCompletion(v97), {
+                                      ^
+
+TypeError: interact.reportCompletion is not a function
+    at Module.Alice (file:///app/build/index.main.mjs:190:39)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async Promise.all (index 0)
+    at async file:///app/index.mjs:27:1
+ERROR: 1
+
+-----------------error on wl-----------------------------------
+
 output for Bob terminal
 
 Hello Bob, your account address is "0x4e69fd6e63f63c93815b18bad8a6f18488cd7723aaafda051d7e8e04ed4eed08". please wait while we prepare
