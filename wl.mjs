@@ -24,23 +24,24 @@ const balAlice = await balance(accountAlice);
 const accountBob = await stdlib.newTestAccount(startingBalance);
 const balBob = await balance(accountBob);
 const ctcAlice = accountAlice.contract(backend);
-const ctcInfo = ctcAlice.getInfo()
-const ctcBob = accountBob.contract(backend, ctcInfo);
+const ctcInfo = ctcAlice.getInfo();
+const ctcBob = accountBob.contract(backend, ctcAlice.getInfo());
 
 
-console.log(`Hello ${userName}, your account address is ${userName == 'Bob' ? JSON.stringify(await accountBob.getAddress()) : 'not needed'}. please wait while we prepare`);
+console.log(`Hello ${userName}, your account address is ${userName == 'Bob' ? await accountBob.getAddress() : 'not needed'}. \nPlease wait while we prepare`);
 console.log(`Your current balance is ${userName == 'Bob' ? balBob : balAlice} ${suStr}.`);
 
 //commmon interact
-const commonInteract = (userName) => ({
-    requestDenied: () => {console.log(`${userName == 'Bob' ? 'You have denied the request' : 'Bob said no'}.`)},
-    reportMismatch: () => { console.log(`${userName == 'Bob' ? 'This request was intended for someone else' : 'Address does not match input, request aborted'}.`)},
-    reportCompletion: (approveRequest) => { console.log(`${username == 'Bob' ? 'You have ' : 'Bob has '} accepted the request, and a transfer of ${toSU(payment)} has been completed.`)},
-//future common interact properties
+const commonInteract = async (userName) => ({
+    requestDenied: async () => {console.log(`${userName == 'Bob' ? 'You have denied the request' : 'Bob said no'}.`)},
+    reportMismatch: async () => { console.log(`${userName == 'Bob' ? 'This request was intended for someone else' : 'Address does not match input, request aborted'}.`)},
+    reportCompletion: async (approveRequest) => { console.log(`${userName == 'Bob' ? 'You have ' : 'Bob has '} accepted the request, and a transfer of ${toSU(payment)} has been completed.`)},
+    reportReady: async (requestAmount) => console.log((userName == 'Bob') ? `Incoming request...` : `Your request for ${toSU(requestAmount)} ${suStr} has been submitted.`),
+    //future common interact properties
 });
 
 //Alice interact
-if (userName === 'Alice') {
+if (userName == 'Alice') {
     const aliceInteract = {
             ...commonInteract(userName),
             requestAddress: await ask.ask("Please enter the address you would like to bill.", (add) => {
@@ -51,12 +52,11 @@ if (userName === 'Alice') {
                                 let reqAmt = amt;
                                 return reqAmt;
                         }),
-            reportReady: async (requestAmount) => console.log(`Your request for ${toSU(requestAmount)} ${suStr} has been submitted.`),
+            
         };
         // alice-specific accounting stuff 
-    console.log(balAlice);
     await ctcAlice.participants.Alice(aliceInteract);
-    console.log(balAlice);
+    console.log(`Your new balance is ${balAlice} ${suStr}.`);
      
 } else { //Bob interact
     
@@ -66,11 +66,11 @@ if (userName === 'Alice') {
             approveRequest: async (requestAmount) => await ask.ask(`Your balance is ${balBob} ${suStr}. Alice is requesting ${requestAmount} ${suStr}. Approve request?`, ask.yesno), 
             //more Bob interact?
     }
-    console.log(balBob);
-    await ctcBob.p.Bob(bobInteract);
-    console.log(balBob);
+    await ctcBob.participants.Bob(bobInteract);
+    (!approveRequest) ? console.log(`You have denied the request.`) : console.log(`You have paid Alice ${requestAmount} ${suStr}.`);
+    
     // bob-specific accounting stuff
     
 };
-
+console.log(`Your new balance is ${balBob} ${suStr}.`);
 ask.done();
